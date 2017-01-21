@@ -2,7 +2,7 @@
 Copyright Capgemini India. 2016 All Rights Reserved.
 */
 
-paaackage main
+package main
 
 import (
                 "errors"
@@ -17,6 +17,7 @@ import (
 type KYCAMLcode struct {
 }
 
+
 var kycAMLIndexTxStr = "_kycAMLIndexTxStr"
 
 type KYCDetails struct{
@@ -28,6 +29,7 @@ type KYCDetails struct{
                 KYC_DOCUMENT string `json:"KYC_DOCUMENT"`
 }
 
+
 func (t *KYCAMLcode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
                 var err error
@@ -36,7 +38,7 @@ func (t *KYCAMLcode) Init(stub shim.ChaincodeStubInterface, function string, arg
                 fmt.Printf("KYC setup is completed\n")
 
                 var emptyKYCDtls []KYCDetails
-                jsonAsBytes, _ := json.Marshal(KYCDetails)
+                jsonAsBytes, _ := json.Marshal(emptyKYCDtls)
                 err = stub.PutState(kycAMLIndexTxStr, jsonAsBytes)
                 if err != nil {
                                 return nil, err
@@ -95,6 +97,7 @@ func (t *KYCAMLcode) Query(stub shim.ChaincodeStubInterface,function string, arg
                 var err error
                 var resAsBytes []byte
 
+
                 if len(args) != 1 {
                                 return nil, errors.New("Incorrect number of arguments. Expecting UserId to query")
                 }
@@ -126,7 +129,7 @@ func (t *KYCAMLcode)  GetKYCAMLDetails(stub shim.ChaincodeStubInterface, UserId 
                 length := len(KYCDetailsObjects)
                 fmt.Printf("Output from chaincode: %s\n", KYCDtlsAsBytes)
 
-                if PolicyId == "" {
+                if UserId == "" {
                                 res, err := json.Marshal(KYCDetailsObjects)
                                 if err != nil {
                                 return nil, errors.New("Failed to Marshal the required Obj")
@@ -159,6 +162,7 @@ func (t *KYCAMLcode)  GetKYCAMLDetails(stub shim.ChaincodeStubInterface, UserId 
                                 return res, nil
                 }
 }
+
 
 func main() {
                 err := shim.Start(new(KYCAMLcode))
