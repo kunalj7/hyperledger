@@ -7,6 +7,7 @@ package main
 import (
                 "errors"
                 "fmt"
+                "time"
                 //"strconv"
                 "encoding/json"
                 "github.com/hyperledger/fabric/core/chaincode/shim"
@@ -16,7 +17,6 @@ import (
 // KYC  AML Chaincode implementation
 type KYCAMLcode struct {
 }
-
 
 var kycAMLIndexTxStr = "_kycAMLIndexTxStr"
 
@@ -46,7 +46,7 @@ func (t *KYCAMLcode) Init(stub shim.ChaincodeStubInterface, function string, arg
                 return nil, nil
 }
 
-// Add AML KYC data for the customer
+// Add KYC AML data for a customer
 func (t *KYCAMLcode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
                 if function == kycAMLIndexTxStr {
                                 return t.AddKYCAMLData(stub, args)
@@ -80,13 +80,46 @@ func (t *KYCAMLcode)  AddKYCAMLData(stub shim.ChaincodeStubInterface, args []str
                 }
                 json.Unmarshal(kycAMLDtlsAsBytes, &KYCDetailsList)
 
-                KYCDetailsList = append(KYCDetailsList, KYCDetailsDataObj)
-                jsonAsBytes, _ := json.Marshal(KYCDetailsList)
+                // Logic for Valid till date comparison
+                length := len(KYCDetailsList)
 
-                err = stub.PutState(kycAMLIndexTxStr, jsonAsBytes)
-                if err != nil {
-                                return nil, err
-                }
+                var objFound bool
+
+                for i := 0; i < length; i++ {
+                                obj := KYCDetailsList[i]
+                                if args[1] == obj.USER_ID {
+                                              // var ExistingValidTillDate
+                                              layout := "2006/01/02"
+                                              objFound = true
+                                              // IncomingValidTillDate := time.Parse(layout, args[4])
+
+                                              ExistingValidTillDate, err := time.Parse(layout, obj.KYC_VALID_TILL_DATE)
+                                              now := time.Now()
+                                              if (ExistingValidTillDate.Before(now)) {
+                                                obj.USER_NAME = args[0]
+                                                obj.USER_ID = args[1]
+                                                obj.NAME_OF_BANK = args[2]
+                                                obj.KYC_DATE = args[3]
+                                                obj.KYC_VALID_TILL_DATE = args[4]
+                                                obj.KYC_DOCUMENT = args[5]
+                                              }
+                                              if err != nil {
+                                                  fmt.Println(err)
+                                                }
+                                }
+                            }
+                            if objFound {
+
+
+                            } else {
+                                KYCDetailsList = append(KYCDetailsList, KYCDetailsDataObj)
+                                jsonAsBytes, _ := json.Marshal(KYCDetailsList)
+
+                                err = stub.PutState(kycAMLIndexTxStr, jsonAsBytes)
+                                if err != nil {
+                                                return nil, err
+                                }
+                            }
                 return nil, nil
 }
 
@@ -117,7 +150,7 @@ func (t *KYCAMLcode) Query(stub shim.ChaincodeStubInterface,function string, arg
 
 func (t *KYCAMLcode)  GetKYCAMLDetails(stub shim.ChaincodeStubInterface, UserId string) ([]byte, error) {
 
-                //var requiredObj RegionData
+                //var requiredObj KYCAMLData
                 var objFound bool
                 KYCDtlsAsBytes, err := stub.GetState(kycAMLIndexTxStr)
                 if err != nil {
