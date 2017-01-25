@@ -46,7 +46,7 @@ func (t *KYCAMLcode) Init(stub shim.ChaincodeStubInterface, function string, arg
                 return nil, nil
 }
 
-// Add region data for the policy
+// Add AML KYC data for the customer
 func (t *KYCAMLcode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
                 if function == kycAMLIndexTxStr {
                                 return t.AddKYCAMLData(stub, args)
